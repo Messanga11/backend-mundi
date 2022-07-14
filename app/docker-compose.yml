@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_ADMIN}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    ports:
+      - 5050:5050
+    depends_on:
+      - db
+
+  mundi_minio:
+    image: minio/minio
+    container_name: mundi_minio
+    ports:
+      - 9050:9000
+    volumes:
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
+    environment:
+      - MINIO_ACCESS_KEY=cbdcb2dc9911889143082b9f1f4a045aa20c121f
+      - MINIO_SECRET_KEY=0f04cfbb8e664a112fd8279cb8cba8c2077807a6693891ef0aead48db043
+    command: server /data
+    depends_on:
+      - db
+  
+  # api_mundi:
+  #   container_name: api-mundi
+  #   build: .
+  #   command: bash -c "alembic upgrade head && uvicorn maiin:app --host 0.0.0.0 --port 8080"
+  #   volumes:
+  #     - .:/api_mundi_data
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     - db
+  #   restart: always
+
+# Volumes
+volumes:
+  redis-data:
+  redis-public-data:
+  data-postgresql:
